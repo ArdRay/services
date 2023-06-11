@@ -21,7 +21,7 @@ job "monitoring" {
             driver = "podman"
 
             artifact {
-                source = ""
+                source = "https://raw.githubusercontent.com/ArdRay/services/master/files/prometheus.yml"
                 destination = "local/prometheus.yml"
                 mode = "file"
             }
