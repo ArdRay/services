@@ -1,0 +1,17 @@
+global:
+  scrape_interval:     15s
+  evaluation_interval: 15s
+
+scrape_configs:
+
+  - job_name: 'nomad_metrics'
+    static_configs:
+    - targets: ['10.10.2.3:4646', '10.10.2.66:4646']
+
+    metrics_path: /v1/metrics
+    params:
+      format: ['prometheus']
+
+  - job_name: 'ext_haproxy'
+    static_configs:
+    - targets: ['10.10.2.6:8404']
