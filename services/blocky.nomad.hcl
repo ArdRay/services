@@ -26,10 +26,6 @@ job "dns" {
 
             config {
                 image = "docker.io/spx01/blocky"
-                args = [
-                    "--storage.tsdb.path=/etc/prometheus/data",
-                    "--config.file=/etc/prometheus/config/prometheus.yml"
-                ]
                 force_pull = true
                 readonly_rootfs = true
                 volumes = [
@@ -57,7 +53,8 @@ job "dns" {
             }
 
             service {
-                name = "blocky"
+                name = "dns-dns-blocky"
+                provider = "consul"
                 tags = [
                     "services"
                 ]
