@@ -1,14 +1,12 @@
-job "monitoring" {
+job "dns" {
     datacenters = ["dc1"]
     type = "service"
 
-    group "prometheus" {
+    group "dns" {
 
         network {
-            port "prometheus_ui" { 
-                static = 9090 
-                to     = 9090
-            }
+            port "blocky_http" { to = 4000 }
+            port "blocky_dns" { to = 53 }
         }
 
         restart {
@@ -17,17 +15,17 @@ job "monitoring" {
             mode     = "delay"
         }
 
-        task "prometheus" {
+        task "blocky" {
             driver = "podman"
 
             artifact {
-                source = "https://raw.githubusercontent.com/ArdRay/services/master/files/prometheus.yml"
-                destination = "local/prometheus.yml"
+                source = "https://raw.githubusercontent.com/ArdRay/services/master/files/dns.yml"
+                destination = "local/dns.yml"
                 mode = "file"
             }
 
             config {
-                image = "docker.io/prom/prometheus"
+                image = "docker.io/spx01/blocky"
                 args = [
                     "--storage.tsdb.path=/etc/prometheus/data",
                     "--config.file=/etc/prometheus/config/prometheus.yml"
@@ -35,38 +33,40 @@ job "monitoring" {
                 force_pull = true
                 readonly_rootfs = true
                 volumes = [
-                    "/mnt/prometheus_service:/etc/prometheus/data",
-                    "local:/etc/prometheus/config:ro,noexec"
+                    "local/dns.yml:/app/config.yml:ro,noexec"
                 ]
 
                 labels = {
-                    "service_type" = "monitoring",
-                    "service_name" = "prometheus" 
+                    "service_type" = "services",
+                    "service_name" = "dns" 
                 }
 
                 logging {
                     driver = "journald"
                     options = [
                         {
-                            tag = "PROMETHEUS"
+                            tag = "DNS"
                         }
                     ]
                 }
 
-                ports = ["prometheus_ui"]
+                ports = [
+                    "blocky_http", 
+                    "blocky_dns"
+                ]
             }
 
             service {
-                name = "prometheus"
+                name = "blocky"
                 tags = [
-                    "metrics"
+                    "services"
                 ]
-                port = "prometheus_ui"
+                port = "blocky_http"
 
 
                 check {
                     type = "http"
-                    path = "/-/healthy"
+                    path = "/"
                     interval = "10s"
                     timeout = "2s"
 
@@ -81,8 +81,8 @@ job "monitoring" {
             }
 
             resources {
-                cpu    = 400
-                memory = 300
+                cpu    = 200
+                memory = 150
             }
 
         }
